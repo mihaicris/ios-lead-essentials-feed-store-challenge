@@ -29,24 +29,32 @@ public class InMemoryFeedStore: FeedStore {
     private var memoryFeed: [InMemoryFeedImage]?
     private var memoryTimestamp: Date?
 
+    private let queue = DispatchQueue(label: "\(InMemoryFeedStore.self)-Queue", qos: .userInitiated, attributes: .concurrent)
+
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-        self.memoryFeed = nil
-        self.memoryTimestamp = nil
-        completion(.none)
+        queue.async(flags: .barrier) {
+            self.memoryFeed = nil
+            self.memoryTimestamp = nil
+            completion(.none)
+        }
     }
 
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-        self.memoryFeed = feed.map(InMemoryFeedImage.init)
-        self.memoryTimestamp = timestamp
-        completion(.none)
+        queue.async(flags: .barrier) {
+            self.memoryFeed = feed.map(InMemoryFeedImage.init)
+            self.memoryTimestamp = timestamp
+            completion(.none)
+        }
     }
 
     public func retrieve(completion: @escaping RetrievalCompletion) {
-        if let memoryFeed = self.memoryFeed, let timestamp = self.memoryTimestamp {
-            let feed = memoryFeed.map { $0.local }
-            completion(.found(feed: feed, timestamp: timestamp))
-        } else {
-            completion(.empty)
+        queue.async {
+            if let memoryFeed = self.memoryFeed, let timestamp = self.memoryTimestamp {
+                let feed = memoryFeed.map { $0.local }
+                completion(.found(feed: feed, timestamp: timestamp))
+            } else {
+                completion(.empty)
+            }
         }
     }
 
