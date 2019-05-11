@@ -30,7 +30,7 @@ public class InMemoryFeedStore: FeedStore {
     private var memoryTimestamp: Date?
 
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-
+        completion(.none)
     }
 
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
