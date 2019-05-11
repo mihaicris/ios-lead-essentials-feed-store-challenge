@@ -30,6 +30,8 @@ public class InMemoryFeedStore: FeedStore {
     private var memoryTimestamp: Date?
 
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+        self.memoryFeed = nil
+        self.memoryTimestamp = nil
         completion(.none)
     }
 
